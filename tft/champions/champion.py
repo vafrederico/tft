@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from tft.game.constant import GAME_LOOP
 from time import time
 from tft.items.infinity_edge import InfinityEdge
-from typing import List, final
+from typing import ClassVar, List
 from tft.stats import BaseChampStats
 from tft.items.item import Item
 from tft.traits.trait import Trait
@@ -23,14 +23,18 @@ class BaseChampion:
     last_attack_ts: float = 0
     current_mana: int = 0
     team: int
+    index: int
+    count: ClassVar[int] = 0
 
     def __init__(self, level: int, team: int) -> None:
         self.level = level - 1
         self.current_hp = self.base_stats.hp[self.level]
         self.team = team
+        self.__class__.count += 1
+        self.index = self.__class__.count
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} ({self.current_hp}, {self.current_mana}/{self.base_stats.mana})'
+        return f'{self.__class__.__name__} {self.index} ({self.current_hp}, {self.current_mana}/{self.base_stats.mana})'
 
     @property
     def ad(self) -> int:
