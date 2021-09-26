@@ -50,9 +50,8 @@ class BaseChampion:
     def ap(self) -> float:
         from_items = sum(i.stats.ap for i in self.items)
         from_traits = sum(i.stats.ap for i in self.traits)
-        f = from_items + from_traits
-        log.info('%s: ASPD = %d (%d I, %d T)', self, f, from_items,
-                 from_traits)
+        f = 1+ (from_items + from_traits)/100
+        self.log_info('AP = %.2f (%d I, %d T)', f, from_items, from_traits)
         return f
 
     @property
