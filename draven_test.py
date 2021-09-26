@@ -19,7 +19,7 @@ FORMAT = (
     "%(asctime)s [%(threadName)10s][%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s"
 )
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format=FORMAT,
     handlers=(
         # RotatingFileHandler('assistant.log',
@@ -48,6 +48,10 @@ def iteration():
     dummy_1.traits = [Knight(4)]
     dummy_2 = Dummy(1, 1)
     dummy_2.traits = [Knight(4)]
+    dummy_3 = Dummy(1, 1)
+    dummy_3.traits = [Knight(4)]
+    dummy_4 = Dummy(1, 1)
+    dummy_4.traits = [Knight(4)]
 
     # draven_ie.ult(dummy_1)
     # draven_ie.attack(dummy_1)
@@ -68,11 +72,13 @@ def iteration():
     BOARD.champions.append(draven)
     BOARD.champions.append(dummy_1)
     BOARD.champions.append(dummy_2)
-
+    BOARD.champions.append(dummy_3)
+    BOARD.champions.append(dummy_4)
+    GAME_LOOP.tick_team = 1
     GAME_LOOP.start()
 
-for i in range(100):
-    try: 
+for i in range(1):
+    try:
         iteration()
     except:
         times.append(GAME_LOOP.game_time)

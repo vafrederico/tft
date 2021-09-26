@@ -3,7 +3,7 @@ from __future__ import annotations
 from time import sleep, time
 from logging import getLogger
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 
 if TYPE_CHECKING:
@@ -21,14 +21,16 @@ class GameLoop:
     running: bool = False
     ticks: int = 0
     game_time: float = 0.0
+    tick_team: Optional[int] = None
 
     def __init__(self, board: Board) -> None:
         self.board = board
     
-    def reset(self):
+    def reset(self) -> None:
         self.running = False
         self.ticks = 0
         self.game_time = 0.0
+        self.tick_team = None
 
     def start(self) -> None:
         self.running = True
@@ -52,7 +54,7 @@ class GameLoop:
 
     def tick(self) -> None:
         for c in self.board.champions:
-            if c.__class__.__name__ == 'Dummy':
+            if self.tick_team is not None and self.tick_team == c.team:
                 continue
             if c.alive:
                 if c.target is None or c.target.alive == False:
