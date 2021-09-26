@@ -102,7 +102,7 @@ class BaseChampion:
         return self.base_stats.aspd
 
     def do_attack(self) -> None:
-        self.do_damage(self.target, self.ad, True)
+        self.do_damage(self.target, self.ad, True, True)
 
     def attack(self) -> None:
         if self.last_attack_ts + 1 / self.aspd <= GAME_LOOP.game_time:
@@ -120,7 +120,7 @@ class BaseChampion:
         pass
 
     def do_damage(self, target: 'BaseChampion', amount: float,
-                  can_crit: bool) -> None:
+                  can_crit: bool, is_attack: bool) -> None:
         dmg = amount
         target_resist = target.armor
         resist_ignore = self.base_stats.armor_ignore
@@ -156,6 +156,7 @@ class BaseChampion:
         final_dmg = dmg * resist_reduction * dmg_multi
 
         target.take_dmg(self, final_dmg, did_crit)
+        if is_attack:
         for item in self.items:
             item.on_attack(target, did_crit)
 
