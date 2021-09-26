@@ -1,5 +1,6 @@
 import logging
 from logging import StreamHandler
+from tft.traits.ironclad import Ironclad
 from tft.items.guinsoo import Guinsoo
 from tft.items.deathblade import Deathblade
 from tft.game.constant import BOARD, GAME_LOOP
@@ -22,7 +23,7 @@ FORMAT = (
 )
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format=FORMAT,
     handlers=(
         # RotatingFileHandler('assistant.log',
@@ -54,13 +55,13 @@ def iteration():
     draven_gs.traits = [Forgotten(2)]
 
     dummy_1 = Dummy(1, 1)
-    dummy_1.traits = [Knight(4)]
+    dummy_1.traits = [Knight(4), Ironclad(3)]
     dummy_2 = Dummy(1, 1)
-    dummy_2.traits = [Knight(4)]
+    dummy_2.traits = [Knight(4), Ironclad(3)]
     dummy_3 = Dummy(1, 1)
-    dummy_3.traits = [Knight(4)]
+    dummy_3.traits = [Knight(4), Ironclad(3)]
     dummy_4 = Dummy(1, 1)
-    dummy_4.traits = [Knight(4)]
+    dummy_4.traits = [Knight(4), Ironclad(3)]
 
     # draven_ie.ult(dummy_1)
     # draven_ie.attack(dummy_1)
