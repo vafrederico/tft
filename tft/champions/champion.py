@@ -99,7 +99,13 @@ class BaseChampion:
 
     @property
     def aspd(self) -> float:
-        return self.base_stats.aspd
+        from_items = sum(i.stats.aspd for i in self.items)
+        from_base = self.base_stats.aspd
+        from_traits = sum(i.stats.aspd for i in self.traits)
+        f = from_base + from_items + from_traits
+        log.debug('%s: ASPD = %.2f (%.2f I, %.2f B, %.2f T)', self, f, from_items,
+                 from_base, from_traits)
+        return f
 
     def do_attack(self) -> None:
         self.do_damage(self.target, self.ad, True, True)
@@ -151,14 +157,14 @@ class BaseChampion:
             1 - resist_ignore) - shredded_flat
         resist_reduction = 100 / (100 + final_resist)
         log.debug('final_resist: %.2f, reduction: %.2f', final_resist,
-                 resist_reduction)
+                  resist_reduction)
 
         final_dmg = dmg * resist_reduction * dmg_multi
 
         target.take_dmg(self, final_dmg, did_crit)
         if is_attack:
-        for item in self.items:
-            item.on_attack(target, did_crit)
+            for item in self.items:
+                item.on_attack(target, did_crit)
 
     def take_dmg(self, origin: 'BaseChampion', amount: int,
                  did_crit: bool) -> None:
