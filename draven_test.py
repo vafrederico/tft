@@ -1,5 +1,6 @@
 import logging
 from logging import StreamHandler
+from tft.items.guinsoo import Guinsoo
 from tft.items.deathblade import Deathblade
 from tft.game.constant import BOARD, GAME_LOOP
 from tft.game.game_loop import GameLoop
@@ -49,7 +50,7 @@ def iteration():
     draven_ie.traits = [Forgotten(2)]
 
     draven_gs = Draven(2, 0)
-    draven_gs.items = [GiantSlayer(), Deathblade()]
+    draven_gs.items = [GiantSlayer(), Deathblade(), Guinsoo()]
     draven_gs.traits = [Forgotten(2)]
 
     dummy_1 = Dummy(1, 1)
