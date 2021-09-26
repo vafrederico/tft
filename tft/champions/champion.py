@@ -56,10 +56,10 @@ class BaseChampion:
 
     @property
     def armor(self) -> int:
-        f = self.base_stats.armor + sum(
-            i.stats.armor for i in self.items) + sum(i.stats.armor
-                                                     for i in self.traits)
-        log.debug('%s: armor = %d', self, f)
+        from_items = sum(i.stats.armor for i in self.items)
+        from_base = self.base_stats.armor
+        from_traits = sum(i.stats.armor for i in self.traits)
+        f = from_base + from_items + from_traits
         return f
 
     @property
