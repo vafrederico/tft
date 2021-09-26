@@ -13,8 +13,8 @@ if TYPE_CHECKING:
 log = getLogger(__name__)
 
 
-TICK = 60
-SEC_PER_TICK = 1/60
+TICK = 100
+SEC_PER_TICK = 1/TICK
 
 class GameLoop:
     board: Board

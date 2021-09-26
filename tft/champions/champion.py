@@ -11,6 +11,7 @@ from tft.stats import BaseChampStats
 from tft.traits.trait import Trait
 
 log = getLogger(__name__)
+log.setLevel(INFO)
 
 
 class BaseChampion:
@@ -43,7 +44,7 @@ class BaseChampion:
         self.index = self.__class__.count
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} {self.index} ({self.current_hp}, {self.current_mana}/{self.base_stats.mana})'
+        return f'{self.__class__.__name__:8s} ({self.index:02d}) (HP: {self.current_hp:5.0f}, Mana: {self.current_mana:3d}/{self.base_stats.mana:3d})'
 
     @property
     def ad(self) -> int:
