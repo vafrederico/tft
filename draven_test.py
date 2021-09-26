@@ -16,8 +16,10 @@ from statistics import mean
 
 # from logging.handlers import RotatingFileHandler
 FORMAT = (
-    "%(asctime)s [%(threadName)10s][%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s"
+    # "%(asctime)s [%(threadName)10s][%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s"
+    "%(game_time).2f [%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s"
 )
+
 logging.basicConfig(
     level=logging.INFO,
     format=FORMAT,
@@ -25,7 +27,13 @@ logging.basicConfig(
         # RotatingFileHandler('assistant.log',
         #                     maxBytes=500000,
         #                     backupCount=4),
-        StreamHandler(), ))
+        StreamHandler(), ),)
+old_factory = logging.getLogRecordFactory()
+def record_factory(*args, **kwargs):
+    record = old_factory(*args, **kwargs)
+    record.game_time = GAME_LOOP.game_time
+    return record
+logging.setLogRecordFactory(record_factory)
 
 print(
     BaseChampStats([700, 1260, 2268], [80, 144, 259],
