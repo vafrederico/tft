@@ -24,14 +24,13 @@ class BaseChampion:
     current_mana: int = 0
     team: int
 
-
     def __init__(self, level: int, team: int) -> None:
         self.level = level - 1
         self.current_hp = self.base_stats.hp[self.level]
         self.team = team
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__} ({self.current_hp})'
+        return f'{self.__class__.__name__} ({self.current_hp}, {self.current_mana}/{self.base_stats.mana})'
 
     @property
     def ad(self) -> int:
@@ -39,7 +38,8 @@ class BaseChampion:
         from_base = self.base_stats.ad[self.level]
         from_traits = sum(i.stats.ad for i in self.traits)
         f = from_base + from_items + from_traits
-        log.debug('%s: AD = %d (%d I, %d B, %d T)', self, f, from_items, from_base, from_traits)
+        log.debug('%s: AD = %d (%d I, %d B, %d T)', self, f, from_items,
+                  from_base, from_traits)
         return f
 
     @property
@@ -88,17 +88,23 @@ class BaseChampion:
     def aspd(self) -> float:
         return self.base_stats.aspd
 
-    def do_attack(self, target: 'BaseChampion') -> None:
-        self.do_damage(target, self.ad, True)
+    def do_attack(self) -> None:
+        self.do_damage(self.target, self.ad, True)
 
-    def attack(self, target: 'BaseChampion') -> None:
-        if self.last_attack_ts + 1/self.aspd <= GAME_LOOP.game_time:
+    def attack(self) -> None:
+        if self.last_attack_ts + 1 / self.aspd <= GAME_LOOP.game_time:
+            log.info('%s attacking %s', self, self.target)
+            self.do_attack()
             self.last_attack_ts = GAME_LOOP.game_time
-            log.debug('%s attacking %s', self, target)
-            self.do_attack(target)
+            self.current_mana += 10
 
-    def ult(self, target: 'BaseChampion') -> None:
+    def ult(self) -> None:
+        log.info('%s: Ult', self)
         self.current_mana = 0
+        self.do_ult()
+
+    def do_ult(self) -> None:
+        pass
 
     def do_damage(self, target: 'BaseChampion', amount: float,
                   can_crit: bool) -> None:
@@ -125,13 +131,13 @@ class BaseChampion:
             log.debug('crit roll: %f', roll)
             did_crit = roll <= crit_chance
             if did_crit:
-                log.info('Critted')
+                log.debug('Critted')
                 dmg *= 1 + crit_dmg
 
         final_resist = target_resist * (1 - shredded_pct) * (
             1 - resist_ignore) - shredded_flat
         resist_reduction = 100 / (100 + final_resist)
-        log.info('final_resist: %.2f, reduction: %.2f', final_resist,
+        log.debug('final_resist: %.2f, reduction: %.2f', final_resist,
                  resist_reduction)
 
         final_dmg = dmg * resist_reduction * dmg_multi
@@ -140,13 +146,14 @@ class BaseChampion:
         for item in self.items:
             item.on_attack(target, did_crit)
 
-    def take_dmg(self, origin: 'BaseChampion', amount: int, did_crit: bool) -> None:
+    def take_dmg(self, origin: 'BaseChampion', amount: int,
+                 did_crit: bool) -> None:
         red_flat = self.damage_reduction_flat
-        log.info('%s: Reduced damage by %d flat', self, red_flat)
+        log.debug('%s: Reduced damage by %d flat', self, red_flat)
         log.info('%s: Took %d dmg from %s (original: %d)', self,
                  amount - red_flat, origin, amount)
         self.current_hp -= amount - red_flat
-        log.info('%s: HP = %d', self, self.current_hp)
+        log.debug('%s: HP = %d', self, self.current_hp)
         for item in origin.items:
             item.on_hit(origin, did_crit)
 

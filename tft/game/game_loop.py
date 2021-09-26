@@ -60,9 +60,13 @@ class GameLoop:
                 if c.target is None or c.target.alive == False:
                     c.target = self.find_next_target(c)
                     log.debug('%s new target is %s', c, c.target)
-                if c.base_stats.mana > 0 and c.current_mana <= c.base_stats.mana:
+                if c.base_stats.mana > 0 and c.current_mana >= c.base_stats.mana:
                     c.ult()
+                    continue
+                need_move = False
+                if need_move:
+                    pass
                 else:
-                    c.attack(c.target)
+                    c.attack()
         self.ticks += 1
         self.game_time += SEC_PER_TICK
