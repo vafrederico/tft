@@ -43,6 +43,15 @@ class BaseChampion:
         return f
 
     @property
+    def ap(self) -> float:
+        from_items = sum(i.stats.ap for i in self.items)
+        from_traits = sum(i.stats.ap for i in self.traits)
+        f = from_items + from_traits
+        log.info('%s: ASPD = %d (%d I, %d T)', self, f, from_items,
+                 from_traits)
+        return f
+
+    @property
     def armor(self) -> int:
         f = self.base_stats.armor + sum(
             i.stats.armor for i in self.items) + sum(i.stats.armor

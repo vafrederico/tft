@@ -15,6 +15,7 @@ class Stats:
     damage_reduction_pct: float = 0
     damage_reduction_flat: int = 0
     aspd: float = 0.0
+    ap: int = 0
 
 @dataclass
 class BaseChampStats:
