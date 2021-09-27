@@ -1,7 +1,8 @@
 import logging
 from logging import StreamHandler
 from statistics import mean, median
-from tft.traits.legionnaire import Legionnaire
+
+from numpy import percentile
 
 from tft.champions.draven import Draven
 from tft.champions.dummy import Dummy
@@ -104,3 +105,7 @@ print('mean: {}'.format(mean(times)))
 print('min: {}'.format(min(times)))
 print('max: {}'.format(max(times)))
 print('median: {}'.format(median(times)))
+
+for i in [50, 75, 90]:
+    p = percentile(times, i)
+    print(f'p{i}: {p}')
