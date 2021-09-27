@@ -21,10 +21,11 @@ from tft.traits.knight import Knight
 # from logging.handlers import RotatingFileHandler
 FORMAT = (
     # "%(asctime)s [%(threadName)10s][%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s"
-    "%(game_time).2f [%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s")
+    "%(game_time).2f [%(name)40s][%(funcName)20s][%(levelname)8s] %(lambda_field)s %(message)s"
+)
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format=FORMAT,
     handlers=(
         # RotatingFileHandler('assistant.log',
@@ -38,6 +39,7 @@ old_factory = logging.getLogRecordFactory()
 def record_factory(*args, **kwargs):
     record = old_factory(*args, **kwargs)
     record.game_time = GAME_LOOP.game_time
+    record.lambda_field = ''
     return record
 
 
