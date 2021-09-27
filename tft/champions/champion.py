@@ -43,7 +43,7 @@ class BaseChampion:
         self.log.addFilter(CustomLambdaFilter(fn=self.__str__))
 
     def __str__(self) -> str:
-        return f'{self.__class__.__name__:8s} ({self.index:02d}) (HP: {self.current_hp:5.0f}, Mana: {self.current_mana:3d}/{self.base_stats.mana:3d})'
+        return f'{self.__class__.__name__:10s} ({self.index:02d}) (HP: {self.current_hp:5.0f}, Mana: {self.current_mana:3d}/{self.base_stats.mana:3d})'
 
     @property
     def ad(self) -> int:

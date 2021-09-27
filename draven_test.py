@@ -22,7 +22,7 @@ from tft.traits.legionnaire import Legionnaire
 # from logging.handlers import RotatingFileHandler
 FORMAT = (
     # "%(asctime)s [%(threadName)10s][%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s"
-    "%(game_time).2f [%(name)40s][%(funcName)20s][%(levelname)8s] %(lambda_field)s %(message)s"
+    "%(game_time)05.2f [%(name)40s][%(funcName)20s][%(levelname)8s] %(lambda_field)s %(message)s"
 )
 
 STATISTICS = False

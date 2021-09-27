@@ -15,7 +15,7 @@ class Item:
     def on_killed_champion(self, target: BaseChampion) -> None:
         pass
 
-    def on_ult(self) -> None:
+    def on_ult(self, origin: BaseChampion) -> None:
         pass
 
     def on_attack(self, target: BaseChampion, crit: BaseChampion) -> None:
