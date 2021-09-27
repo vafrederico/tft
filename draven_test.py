@@ -1,13 +1,6 @@
 import logging
 from logging import StreamHandler
-from tft.traits.ironclad import Ironclad
-from tft.items.guinsoo import Guinsoo
-from tft.items.deathblade import Deathblade
-from tft.game.constant import BOARD, GAME_LOOP
-from tft.game.game_loop import GameLoop
-from tft.game.board import Board
-from tft.traits.knight import Knight
-from tft.stats import BaseChampStats
+from tft.traits.legionnaire import Legionnaire
 
 from tft.champions.draven import Draven
 from tft.champions.dummy import Dummy
@@ -47,12 +40,12 @@ times = []
 
 def iteration():
     draven_ie = Draven(2, 0)
-    draven_ie.items = [InfinityEdge(), Deathblade()]
-    draven_ie.traits = [Forgotten(2)]
+    draven_ie.items = [InfinityEdge(), Deathblade(), Guinsoo()]
+    draven_ie.traits = [Forgotten(2), Legionnaire(4)]
 
     draven_gs = Draven(2, 0)
     draven_gs.items = [GiantSlayer(), Deathblade(), Guinsoo()]
-    draven_gs.traits = [Forgotten(2)]
+    draven_gs.traits = [Forgotten(2), Legionnaire(4)]
 
     dummy_1 = Dummy(1, 1)
     dummy_1.traits = [Knight(4), Ironclad(3)]
