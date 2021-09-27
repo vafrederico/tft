@@ -84,8 +84,10 @@ class BaseChampion:
 
     @property
     def crit_chance_stat(self) -> float:
-        f = self.base_stats.crit_chance + sum(i.stats.crit_chance
-                                              for i in self.items)
+        from_items = sum(i.stats.crit_chance for i in self.items)
+        from_base = self.base_stats.crit_chance
+        from_traits = sum(i.stats.crit_chance for i in self.traits)
+        f = from_base + from_items + from_traits
         return f
 
     @property
