@@ -1,6 +1,8 @@
 from dataclasses import dataclass
-from logging import DEBUG, INFO, getLogger
+from logging import DEBUG, INFO, Logger, getLogger
 from random import random
+from re import L
+from tft.logging import CustomLambdaFilter
 from time import time
 from typing import ClassVar, List
 
@@ -10,8 +12,7 @@ from tft.items.item import Item
 from tft.stats import BaseChampStats
 from tft.traits.trait import Trait
 
-log = getLogger(__name__)
-log.setLevel(INFO)
+LEVEL = None
 
 
 class BaseChampion:
@@ -27,14 +28,7 @@ class BaseChampion:
     team: int
     index: int
     count: ClassVar[int] = 0
-
-    def log_info(self, fmt, *args, **kwargs) -> None:
-        if log.isEnabledFor(INFO):
-            log.info('%s: ' + fmt, self, *args, **kwargs)
-
-    def log_debug(self, fmt, *args, **kwargs) -> None:
-        if log.isEnabledFor(DEBUG):
-            log.debug('%s: ' + fmt, self, *args, **kwargs)
+    log: Logger = None
 
     def __init__(self, level: int, team: int) -> None:
         self.level = level - 1
@@ -42,6 +36,11 @@ class BaseChampion:
         self.team = team
         self.__class__.count += 1
         self.index = self.__class__.count
+        self.log = getLogger(
+            f'{__name__}_{self.__class__.__name__:8s}_{self.index}')
+        if LEVEL:
+            self.log.setLevel(LEVEL)
+        self.log.addFilter(CustomLambdaFilter(fn=self.__str__))
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__:8s} ({self.index:02d}) (HP: {self.current_hp:5.0f}, Mana: {self.current_mana:3d}/{self.base_stats.mana:3d})'
@@ -52,7 +51,7 @@ class BaseChampion:
         from_base = self.base_stats.ad[self.level]
         from_traits = sum(i.stats.ad for i in self.traits)
         f = from_base + from_items + from_traits
-        self.log_debug('AD = %d (%d I, %d B, %d T)', f, from_items, from_base,
+        self.log.debug('AD = %d (%d I, %d B, %d T)', f, from_items, from_base,
                        from_traits)
         return f
 
@@ -60,8 +59,8 @@ class BaseChampion:
     def ap(self) -> float:
         from_items = sum(i.stats.ap for i in self.items)
         from_traits = sum(i.stats.ap for i in self.traits)
-        f = 1+ (from_items + from_traits)/100
-        self.log_info('AP = %.2f (%d I, %d T)', f, from_items, from_traits)
+        f = 1 + (from_items + from_traits) / 100
+        self.log.debug('AP = %.2f (%d I, %d T)', f, from_items, from_traits)
         return f
 
     @property
@@ -70,7 +69,7 @@ class BaseChampion:
         from_base = self.base_stats.armor
         from_traits = sum(i.stats.armor for i in self.traits)
         f = from_base + from_items + from_traits
-        self.log_debug('armor = %.2f (%.2f I, %.2f B, %.2f T)', f, from_items,
+        self.log.debug('armor = %.2f (%.2f I, %.2f B, %.2f T)', f, from_items,
                        from_base, from_traits)
         return f
 
@@ -88,6 +87,8 @@ class BaseChampion:
         from_base = self.base_stats.crit_chance
         from_traits = sum(i.stats.crit_chance for i in self.traits)
         f = from_base + from_items + from_traits
+        self.log.debug('crit_chance_stat = %.2f (%.2f I, %.2f B, %.2f T)', f,
+                       from_items, from_base, from_traits)
         return f
 
     @property
@@ -111,6 +112,8 @@ class BaseChampion:
 
         f = from_base + from_items + from_traits + from_crit_chance
 
+        self.log.debug('crit_dmg = %.2f (%.2f I, %.2f B, %.2f T, %.2f IE)', f,
+                       from_items, from_base, from_traits, from_crit_chance)
         return f
 
     @property
@@ -119,7 +122,7 @@ class BaseChampion:
         from_base = self.base_stats.aspd
         from_traits = sum(i.stats.aspd for i in self.traits)
         f = from_base * (1 + from_items + from_traits)
-        # self.log_debug('%s: ASPD = %.2f (%.2f I, %.2f B, %.2f T)', self, f, from_items,
+        # self.log.debug('%s: ASPD = %.2f (%.2f I, %.2f B, %.2f T)', self, f, from_items,
         #          from_base, from_traits)
         return f
 
@@ -128,13 +131,13 @@ class BaseChampion:
 
     def attack(self) -> None:
         if self.last_attack_ts + 1 / self.aspd <= GAME_LOOP.game_time:
-            self.log_info('attacking %s', self.target)
+            self.log.info('attacking %s', self.target)
             self.do_attack()
             self.last_attack_ts = GAME_LOOP.game_time
             self.current_mana += 10
 
     def ult(self) -> None:
-        self.log_info('Ult')
+        self.log.info('Ult')
         self.current_mana = 0
         self.do_ult()
 
@@ -158,43 +161,39 @@ class BaseChampion:
         did_crit = False
         if can_crit:
             crit_chance = self.crit_chance
-            self.log_debug('%.2f crit chance', crit_chance)
             crit_dmg = self.crit_dmg
-            self.log_debug('%.2f crit dmg', crit_dmg)
-
             roll = random()
-            self.log_debug('crit roll: %f', roll)
             did_crit = roll <= crit_chance
             if did_crit:
-                self.log_debug('Critted')
+                self.log.debug('CRIT!')
                 dmg *= 1 + crit_dmg
 
         final_resist = target_resist * (1 - shredded_pct) * (
             1 - resist_ignore) - shredded_flat
         resist_reduction = 100 / (100 + final_resist)
-        self.log_debug('final_resist: %.2f, reduction: %.2f', final_resist,
+        self.log.debug('final_resist: %.2f, reduction: %.2f', final_resist,
                        resist_reduction)
 
-        final_dmg = dmg * resist_reduction * dmg_multi
+        pre_mitigation = dmg * dmg_multi
+        final_dmg = dmg * resist_reduction
 
-        target.take_dmg(self, final_dmg, did_crit)
+        target.take_dmg(self, final_dmg, pre_mitigation, did_crit)
         if is_attack:
             for item in self.items:
                 item.on_attack(target, did_crit)
 
-    def take_dmg(self, origin: 'BaseChampion', amount: int,
+    def take_dmg(self, origin: 'BaseChampion', amount: int, pre_mitigation: int,
                  did_crit: bool) -> None:
         red_flat = self.damage_reduction_flat
-        self.log_debug('Reduced damage by %d flat', red_flat)
-        self.log_info('Took %d dmg from %s (original: %d)', amount - red_flat,
-                      origin, amount)
+        self.log.info('Took %d dmg from %s (pre: %d, flat: %d)', amount - red_flat,
+                      origin, pre_mitigation, red_flat)
         self.current_hp -= amount - red_flat
-        self.log_debug('HP = %d', self.current_hp)
+        self.log.debug('HP = %d', self.current_hp)
         for item in origin.items:
             item.on_hit(origin, did_crit)
 
         if self.current_hp <= 0:
             self.alive = False
-            self.log_info('died')
+            self.log.info('died')
             for item in origin.items:
                 item.on_killed_champion(self)
