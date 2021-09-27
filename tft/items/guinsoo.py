@@ -19,6 +19,6 @@ class Guinsoo(Item):
     def on_attack(self, target: BaseChampion, crit: BaseChampion) -> None:
         self.stacks += 1
         self.stats.aspd = self.stacks * 0.06 + self.base_aspd
-        log.debug('+1 stack, total stacks = %d, aspd = %d', self.stacks,
+        log.debug('+1 stack, total stacks = %d, aspd = %.2f', self.stacks,
                   self.stats.aspd)
         return super().on_attack(target, crit)
