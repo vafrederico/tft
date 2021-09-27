@@ -140,6 +140,8 @@ class BaseChampion:
         self.log.info('Ult')
         self.current_mana = 0
         self.do_ult()
+        for i in self.items:
+            i.on_ult(self)
 
     def do_ult(self) -> None:
         pass

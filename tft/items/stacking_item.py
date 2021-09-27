@@ -32,10 +32,10 @@ class StackingItem(Item, metaclass=abc.ABCMeta):
     def __str__(self) -> str:
         return f'{self.__class__.__name__:10s} ({self.index:02d}) (stacks: {self.stacks}, {self.stats})'
 
-    def stack(self, stacks=1) -> None:
+    def stack(self, stacks: int = 1) -> None:
         self.stacks += stacks
         self.stats = self.calculate_stats()
-        self.log.debug('+1 stack')
+        self.log.debug('+%d stack', stacks)
 
     @property
     @abc.abstractmethod
