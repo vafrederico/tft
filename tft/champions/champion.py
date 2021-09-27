@@ -100,14 +100,17 @@ class BaseChampion:
 
     @property
     def crit_dmg(self) -> float:
-        f = self.base_stats.crit_dmg + sum(i.stats.crit_dmg
-                                           for i in self.items)
-        self.log_debug('crit_dmg_base = %f', f)
-
+        from_items = sum(i.stats.crit_dmg for i in self.items)
+        from_base = self.base_stats.crit_dmg
+        from_traits = sum(i.stats.crit_dmg for i in self.traits)
+        from_crit_chance = 0
         for i in self.items:
             if isinstance(i, InfinityEdge):
-                f += self.crit_chance_stat - self.base_stats.crit_chance
+                from_crit_chance += self.crit_chance_stat - self.base_stats.crit_chance
                 break
+
+        f = from_base + from_items + from_traits + from_crit_chance
+
         return f
 
     @property
