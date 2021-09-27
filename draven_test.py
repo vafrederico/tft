@@ -89,4 +89,7 @@ for i in range(1):
     GAME_LOOP.reset()
 
 print(times)
-print(mean(times))
+print('mean: {}'.format(mean(times)))
+print('min: {}'.format(min(times)))
+print('max: {}'.format(max(times)))
+print('median: {}'.format(median(times)))
