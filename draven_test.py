@@ -17,6 +17,7 @@ from tft.stats import BaseChampStats
 from tft.traits.forgotten import Forgotten
 from tft.traits.ironclad import Ironclad
 from tft.traits.knight import Knight
+from tft.traits.legionnaire import Legionnaire
 
 # from logging.handlers import RotatingFileHandler
 FORMAT = (
