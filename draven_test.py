@@ -25,8 +25,11 @@ FORMAT = (
     "%(game_time).2f [%(name)40s][%(funcName)20s][%(levelname)8s] %(lambda_field)s %(message)s"
 )
 
+STATISTICS = False
+NUM_RUNS = 100 if STATISTICS else 1
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.INFO if not STATISTICS else logging.ERROR,
     format=FORMAT,
     handlers=(
         # RotatingFileHandler('assistant.log',
@@ -97,7 +100,7 @@ def iteration():
     GAME_LOOP.start()
 
 
-for i in range(1):
+for i in range(NUM_RUNS):
     iteration()
     times.append(GAME_LOOP.game_time)
     BOARD.reset()
