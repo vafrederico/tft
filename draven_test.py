@@ -1,19 +1,26 @@
 import logging
 from logging import StreamHandler
+from statistics import mean, median
 from tft.traits.legionnaire import Legionnaire
 
 from tft.champions.draven import Draven
 from tft.champions.dummy import Dummy
+from tft.game.board import Board
+from tft.game.constant import BOARD, GAME_LOOP
+from tft.game.game_loop import GameLoop
+from tft.items.deathblade import Deathblade
 from tft.items.giant_slayer import GiantSlayer
+from tft.items.guinsoo import Guinsoo
 from tft.items.infinity_edge import InfinityEdge
+from tft.stats import BaseChampStats
 from tft.traits.forgotten import Forgotten
-from statistics import mean
+from tft.traits.ironclad import Ironclad
+from tft.traits.knight import Knight
 
 # from logging.handlers import RotatingFileHandler
 FORMAT = (
     # "%(asctime)s [%(threadName)10s][%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s"
-    "%(game_time).2f [%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s"
-)
+    "%(game_time).2f [%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s")
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -22,12 +29,17 @@ logging.basicConfig(
         # RotatingFileHandler('assistant.log',
         #                     maxBytes=500000,
         #                     backupCount=4),
-        StreamHandler(), ),)
+        StreamHandler(), ),
+)
 old_factory = logging.getLogRecordFactory()
+
+
 def record_factory(*args, **kwargs):
     record = old_factory(*args, **kwargs)
     record.game_time = GAME_LOOP.game_time
     return record
+
+
 logging.setLogRecordFactory(record_factory)
 
 print(
@@ -37,6 +49,7 @@ print(
                    aspd=0.8))
 
 times = []
+
 
 def iteration():
     draven_ie = Draven(2, 0)
@@ -68,7 +81,6 @@ def iteration():
     # draven_gs.attack(dummy_2)
     # print(dummy_2)
 
-
     # print(draven_ie.base_stats)
 
     draven = draven_gs
@@ -80,11 +92,10 @@ def iteration():
     GAME_LOOP.tick_team = 1
     GAME_LOOP.start()
 
+
 for i in range(1):
-    try:
-        iteration()
-    except:
-        times.append(GAME_LOOP.game_time)
+    iteration()
+    times.append(GAME_LOOP.game_time)
     BOARD.reset()
     GAME_LOOP.reset()
 
