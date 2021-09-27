@@ -113,7 +113,7 @@ class BaseChampion:
         from_items = sum(i.stats.aspd for i in self.items)
         from_base = self.base_stats.aspd
         from_traits = sum(i.stats.aspd for i in self.traits)
-        f = from_base + from_items + from_traits
+        f = from_base * (1 + from_items + from_traits)
         # self.log_debug('%s: ASPD = %.2f (%.2f I, %.2f B, %.2f T)', self, f, from_items,
         #          from_base, from_traits)
         return f
