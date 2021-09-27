@@ -151,7 +151,7 @@ class BaseChampion:
         resist_ignore = self.base_stats.armor_ignore
         shredded_flat = 0
         shredded_pct = 0
-        dmg_multi = 0
+        dmg_multi = 1
 
         for i in self.items:
             shredded_flat += i.stats.armor_shred_flat
@@ -175,19 +175,19 @@ class BaseChampion:
                        resist_reduction)
 
         pre_mitigation = dmg * dmg_multi
-        final_dmg = dmg * resist_reduction
-
+        final_dmg = pre_mitigation * resist_reduction
         target.take_dmg(self, final_dmg, pre_mitigation, did_crit)
         if is_attack:
             for item in self.items:
                 item.on_attack(target, did_crit)
 
-    def take_dmg(self, origin: 'BaseChampion', amount: int, pre_mitigation: int,
-                 did_crit: bool) -> None:
+    def take_dmg(self, origin: 'BaseChampion', amount: int,
+                 pre_mitigation: int, did_crit: bool) -> None:
         red_flat = self.damage_reduction_flat
-        self.log.info('Took %d dmg from %s (pre: %d, flat: %d)', amount - red_flat,
-                      origin, pre_mitigation, red_flat)
-        self.current_hp -= amount - red_flat
+        dmg_taken = amount - red_flat
+        self.log.info('Took %d dmg from %s (crit: %d, pre: %d, flat: %d)',
+                      dmg_taken, origin, did_crit, pre_mitigation, red_flat)
+        self.current_hp -= dmg_taken
         self.log.debug('HP = %d', self.current_hp)
         for item in origin.items:
             item.on_hit(origin, did_crit)

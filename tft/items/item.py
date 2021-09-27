@@ -10,7 +10,7 @@ class Item:
     stats: Stats
 
     def on_damage_multiplier(self, origin, target) -> None:
-        return 1
+        return 0
 
     def on_killed_champion(self, target: BaseChampion) -> None:
         pass
