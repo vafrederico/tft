@@ -40,17 +40,12 @@ class GameLoop:
         for c in self.board.champions:
             if c.alive and c.team != origin.team:
                 return c
-        raise Exception('no more units')
+        self.running = False
 
     def loop(self) -> None:
         while self.running:
-            try:
-                self.tick()
-            except Exception as e:
-                log.fatal('Ending at %d ticks (%.2f seconds)', self.ticks, self.ticks * SEC_PER_TICK)
-                log.exception(e)
-                raise e
-            # sleep(SEC_PER_TICK)
+            self.tick()
+        log.info('Ending at %d ticks (%.2f seconds)', self.ticks, self.ticks * SEC_PER_TICK)
 
     def tick(self) -> None:
         for c in self.board.champions:
@@ -60,6 +55,8 @@ class GameLoop:
                 if c.target is None or c.target.alive == False:
                     c.target = self.find_next_target(c)
                     log.debug('%s new target is %s', c, c.target)
+                if c.target is None:
+                    continue
                 if c.base_stats.mana > 0 and c.current_mana >= c.base_stats.mana:
                     c.ult()
                     continue
