@@ -23,7 +23,7 @@ class Draven(BaseChampion):
         self.axes.insert(0, 0)
 
     def axe(self) -> None:
-        self.log.info('Axe')
+        self.log.debug('Using axe')
         self.do_damage(
             self.target,
             1.4 * self.ad + [125, 200, 700][self.level - 1] * self.ap, True,
