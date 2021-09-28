@@ -31,6 +31,7 @@ class BaseChampion:
     index: int
     count: ClassVar[int] = 0
     log: Logger = None
+    mana_lock_ts: float = 0
 
     def __init__(self, level: int, team: int) -> None:
         self.level = level - 1
@@ -42,23 +43,14 @@ class BaseChampion:
         if LEVEL:
             self.log.setLevel(LEVEL)
         self.log.addFilter(CustomLambdaFilter(fn=self.__str__))
-        self.set_initial_stats()
 
     def set_initial_stats(self) -> None:
         self.current_hp = self.hp
         self.current_mana = self.get_specific_stat(lambda x: x.starting_mana,
                                                    'StartingMana')
 
-    def set_items(self, items: List[Item]) -> None:
-        self.items = items
-        self.set_initial_stats()
-
-    def set_traits(self, traits: List[Trait]) -> None:
-        self.traits = traits
-        self.set_initial_stats()
-
     def __str__(self) -> str:
-        return f'{self.__class__.__name__:10s} ({self.index:02d}) (HP: {self.current_hp:5.0f}, Mana: {self.current_mana:3d}/{self.base_stats.mana:3d})'
+        return f'{self.__class__.__name__:10s} ({self.index:02d}) (HP: {self.current_hp:5.0f}, Mana: {self.current_mana:3d}/{self.base_stats.mana:3d}) '
 
     def get_specific_stat(self,
                           fn: Callable[[Union[BaseChampStats, Stats]],
@@ -140,7 +132,7 @@ class BaseChampion:
             self.log.info('attacking %s', self.target)
             self.do_attack()
             self.last_attack_ts = GAME_LOOP.game_time
-            self.current_mana += 10
+            self.gain_mana(10)
 
     def ult(self) -> None:
         self.log.info('Ult')
@@ -148,9 +140,18 @@ class BaseChampion:
         self.do_ult()
         for i in self.items:
             i.on_ult(self)
+        self.mana_lock_ts = GAME_LOOP.game_time + self.base_stats.mana_lock_seconds
 
     def do_ult(self) -> None:
         pass
+
+    @property
+    def mana_locked(self) -> bool:
+        return self.mana_lock_ts > GAME_LOOP.game_time
+
+    def gain_mana(self, amount: int, skip_lock: bool = False) -> None:
+        if skip_lock or not self.mana_locked:
+            self.current_mana += amount
 
     def do_damage(self, target: 'BaseChampion', amount: float, can_crit: bool,
                   is_attack: bool) -> None:

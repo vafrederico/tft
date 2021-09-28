@@ -5,16 +5,15 @@ from logging import getLogger
 
 from typing import TYPE_CHECKING, Optional
 
-
 if TYPE_CHECKING:
     from tft.champions.champion import BaseChampion
     from tft.game.board import Board
 
 log = getLogger(__name__)
 
-
 TICK = 100
-SEC_PER_TICK = 1/TICK
+SEC_PER_TICK = 1 / TICK
+
 
 class GameLoop:
     board: Board
@@ -25,7 +24,7 @@ class GameLoop:
 
     def __init__(self, board: Board) -> None:
         self.board = board
-    
+
     def reset(self) -> None:
         self.running = False
         self.ticks = 0
@@ -33,6 +32,8 @@ class GameLoop:
         self.tick_team = None
 
     def start(self) -> None:
+        for c in self.board.champions:
+            c.set_initial_stats()
         self.running = True
         self.loop()
 
@@ -45,7 +46,8 @@ class GameLoop:
     def loop(self) -> None:
         while self.running:
             self.tick()
-        log.info('Ending at %d ticks (%.2f seconds)', self.ticks, self.ticks * SEC_PER_TICK)
+        log.info('Ending at %d ticks (%.2f seconds)', self.ticks,
+                 self.ticks * SEC_PER_TICK)
 
     def tick(self) -> None:
         for c in self.board.champions:
@@ -57,7 +59,7 @@ class GameLoop:
                     log.debug('%s new target is %s', c, c.target)
                 if c.target is None:
                     continue
-                if c.base_stats.mana > 0 and c.current_mana >= c.base_stats.mana:
+                if c.base_stats.mana > 0 and c.current_mana >= c.base_stats.mana and not c.mana_locked:
                     c.ult()
                     continue
                 need_move = False

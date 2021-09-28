@@ -6,9 +6,7 @@ from numpy import percentile
 
 from tft.champions.draven import Draven
 from tft.champions.dummy import Dummy
-from tft.game.board import Board
 from tft.game.constant import BOARD, GAME_LOOP
-from tft.game.game_loop import GameLoop
 from tft.items.deathblade import Deathblade
 from tft.items.giant_slayer import GiantSlayer
 from tft.items.guinsoo import Guinsoo
@@ -22,7 +20,7 @@ from tft.traits.legionnaire import Legionnaire
 # from logging.handlers import RotatingFileHandler
 FORMAT = (
     # "%(asctime)s [%(threadName)10s][%(name)30s][%(funcName)20s][%(levelname)8s] %(message)s"
-    "%(game_time)05.2f [%(name)40s][%(funcName)20s][%(levelname)8s] %(lambda_field)s %(message)s"
+    "%(game_time)05.2f [%(name)40s][%(funcName)20s][%(levelname)8s] %(lambda_field)s%(message)s"
 )
 
 STATISTICS = False

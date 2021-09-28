@@ -37,3 +37,4 @@ class BaseChampStats:
     mana: int = 0
     starting_mana: int = 0
     ap: int = 100
+    mana_lock_seconds: int = 0
