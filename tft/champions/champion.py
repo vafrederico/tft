@@ -75,10 +75,12 @@ class BaseChampion:
 
     @property
     def damage_reduction_flat(self) -> int:
-        f = self.base_stats.damage_reduction_flat + sum(
-            i.stats.damage_reduction_flat
-            for i in self.items) + sum(i.stats.damage_reduction_flat
-                                       for i in self.traits)
+        from_items = sum(i.stats.damage_reduction_flat for i in self.items)
+        from_base = self.base_stats.damage_reduction_flat
+        from_traits = sum(i.stats.damage_reduction_flat for i in self.traits)
+        f = from_base + from_items + from_traits
+        self.log.debug('damage_reduction_flat = %.2f (%.2f I, %.2f B, %.2f T)',
+                       f, from_items, from_base, from_traits)
         return f
 
     @property
