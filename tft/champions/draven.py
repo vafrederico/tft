@@ -10,7 +10,8 @@ log = getLogger(__name__)
 
 class Draven(BaseChampion):
     AXE_RETURN_SECONDS = 1.5
-    base_stats = BaseChampStats([700, 1260, 2268], [80, 144, 259],
+    base_stats = BaseChampStats(700,
+                                80,
                                 armor=30,
                                 armor_ignore=0.5,
                                 mr=30,
@@ -23,8 +24,10 @@ class Draven(BaseChampion):
 
     def axe(self) -> None:
         self.log.info('Axe')
-        self.do_damage(self.target, 1.4 * self.ad + [125, 200, 700][self.level - 1] * self.ap,
-                       True, True)
+        self.do_damage(
+            self.target,
+            1.4 * self.ad + [125, 200, 700][self.level - 1] * self.ap, True,
+            True)
 
     def do_attack(self) -> None:
         if len(

@@ -1,23 +1,25 @@
 from dataclasses import dataclass
-from logging import DEBUG, INFO, Logger, getLogger
+from logging import DEBUG, INFO, Logger, disable, getLogger
 from random import random
 from re import L
 from tft.logging import CustomLambdaFilter
 from time import time
-from typing import ClassVar, List
+from typing import Callable, ClassVar, List, Union
 
 from tft.game.constant import GAME_LOOP
 from tft.items.infinity_edge import InfinityEdge
 from tft.items.item import Item
-from tft.stats import BaseChampStats
+from tft.stats import BaseChampStats, Stats
 from tft.traits.trait import Trait
+from typing import TypeVar
 
 LEVEL = None
+T = TypeVar('T')
 
 
 class BaseChampion:
     base_stats: BaseChampStats
-    current_hp: int
+    current_hp: int = 1
     alive: bool = True
     level: int
     items: List[Item] = []
@@ -32,7 +34,6 @@ class BaseChampion:
 
     def __init__(self, level: int, team: int) -> None:
         self.level = level - 1
-        self.current_hp = self.base_stats.hp[self.level]
         self.team = team
         self.__class__.count += 1
         self.index = self.__class__.count
@@ -41,57 +42,70 @@ class BaseChampion:
         if LEVEL:
             self.log.setLevel(LEVEL)
         self.log.addFilter(CustomLambdaFilter(fn=self.__str__))
+        self.set_initial_stats()
+
+    def set_initial_stats(self) -> None:
+        self.current_hp = self.hp
+        self.current_mana = self.get_specific_stat(lambda x: x.starting_mana,
+                                                   'StartingMana')
+
+    def set_items(self, items: List[Item]) -> None:
+        self.items = items
+        self.set_initial_stats()
+
+    def set_traits(self, traits: List[Trait]) -> None:
+        self.traits = traits
+        self.set_initial_stats()
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__:10s} ({self.index:02d}) (HP: {self.current_hp:5.0f}, Mana: {self.current_mana:3d}/{self.base_stats.mana:3d})'
 
+    def get_specific_stat(self,
+                          fn: Callable[[Union[BaseChampStats, Stats]],
+                                       Union[int, float]],
+                          caller_name: str,
+                          level_scaling: bool = False,
+                          disable_log: bool = False) -> Union[int, float]:
+        from_items = sum(fn(i.stats) for i in self.items)
+        from_base = fn(
+            self.base_stats) * (1.8**self.level if level_scaling else 1)
+        from_traits = sum(fn(i.stats) for i in self.traits)
+        f = from_base + from_items + from_traits
+        if not disable_log and self.log.getEffectiveLevel() <= DEBUG:
+            if isinstance(f, float):
+                self.log.debug('%s = %.2f (%.2f I, %.2f B, %.2f T)',
+                               caller_name, f, from_items, from_base,
+                               from_traits)
+            else:
+                self.log.debug('%s = %d (%d I, %d B, %d T)', caller_name, f,
+                               from_items, from_base, from_traits)
+        return f
+
+    @property
+    def hp(self) -> int:
+        return self.get_specific_stat(lambda x: x.hp, 'HP', True)
+
     @property
     def ad(self) -> int:
-        from_items = sum(i.stats.ad for i in self.items)
-        from_base = self.base_stats.ad[self.level]
-        from_traits = sum(i.stats.ad for i in self.traits)
-        f = from_base + from_items + from_traits
-        self.log.debug('AD = %d (%d I, %d B, %d T)', f, from_items, from_base,
-                       from_traits)
-        return f
+        return self.get_specific_stat(lambda x: x.ad, 'AD', True)
 
     @property
     def ap(self) -> float:
-        from_items = sum(i.stats.ap for i in self.items)
-        from_traits = sum(i.stats.ap for i in self.traits)
-        f = 1 + (from_items + from_traits) / 100
-        self.log.debug('AP = %.2f (%d I, %d T)', f, from_items, from_traits)
-        return f
+        return self.get_specific_stat(lambda x: x.ap, 'AP', False) / 100
 
     @property
     def armor(self) -> int:
-        from_items = sum(i.stats.armor for i in self.items)
-        from_base = self.base_stats.armor
-        from_traits = sum(i.stats.armor for i in self.traits)
-        f = from_base + from_items + from_traits
-        self.log.debug('armor = %.2f (%.2f I, %.2f B, %.2f T)', f, from_items,
-                       from_base, from_traits)
-        return f
+        return self.get_specific_stat(lambda x: x.armor, 'Armor')
 
     @property
     def damage_reduction_flat(self) -> int:
-        from_items = sum(i.stats.damage_reduction_flat for i in self.items)
-        from_base = self.base_stats.damage_reduction_flat
-        from_traits = sum(i.stats.damage_reduction_flat for i in self.traits)
-        f = from_base + from_items + from_traits
-        self.log.debug('damage_reduction_flat = %.2f (%.2f I, %.2f B, %.2f T)',
-                       f, from_items, from_base, from_traits)
-        return f
+        return self.get_specific_stat(lambda x: x.damage_reduction_flat,
+                                      'DmgRedFlat')
 
     @property
     def crit_chance_stat(self) -> float:
-        from_items = sum(i.stats.crit_chance for i in self.items)
-        from_base = self.base_stats.crit_chance
-        from_traits = sum(i.stats.crit_chance for i in self.traits)
-        f = from_base + from_items + from_traits
-        self.log.debug('crit_chance_stat = %.2f (%.2f I, %.2f B, %.2f T)', f,
-                       from_items, from_base, from_traits)
-        return f
+        return self.get_specific_stat(lambda x: x.crit_chance,
+                                      'crit_chance_stat')
 
     @property
     def crit_chance(self) -> float:
@@ -103,29 +117,19 @@ class BaseChampion:
 
     @property
     def crit_dmg(self) -> float:
-        from_items = sum(i.stats.crit_dmg for i in self.items)
-        from_base = self.base_stats.crit_dmg
-        from_traits = sum(i.stats.crit_dmg for i in self.traits)
+        f = self.get_specific_stat(lambda x: x.crit_dmg, 'crit_dmg')
         from_crit_chance = 0
         for i in self.items:
             if isinstance(i, InfinityEdge):
                 from_crit_chance += self.crit_chance_stat - self.base_stats.crit_chance
+                self.log.debug('crit_dmg from chance: %.2f', from_crit_chance)
+                f += from_crit_chance
                 break
-
-        f = from_base + from_items + from_traits + from_crit_chance
-
-        self.log.debug('crit_dmg = %.2f (%.2f I, %.2f B, %.2f T, %.2f IE)', f,
-                       from_items, from_base, from_traits, from_crit_chance)
         return f
 
     @property
     def aspd(self) -> float:
-        from_items = sum(i.stats.aspd for i in self.items)
-        from_base = self.base_stats.aspd
-        from_traits = sum(i.stats.aspd for i in self.traits)
-        f = from_base * (1 + from_items + from_traits)
-        # self.log.debug('%s: ASPD = %.2f (%.2f I, %.2f B, %.2f T)', self, f, from_items,
-        #          from_base, from_traits)
+        f = self.get_specific_stat(lambda x: x.aspd, 'ASPD', False, True)
         return f
 
     def do_attack(self) -> None:
