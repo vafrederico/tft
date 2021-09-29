@@ -1,9 +1,7 @@
-from dataclasses import dataclass
-from logging import DEBUG, INFO, Logger, disable, getLogger
+from logging import DEBUG, INFO, Logger, getLogger
 from random import random
-from re import L
+from enum import Enum
 from tft.logging import CustomLambdaFilter
-from time import time
 from typing import Callable, ClassVar, List, Union
 
 from tft.game.constant import GAME_LOOP
@@ -11,10 +9,14 @@ from tft.items.infinity_edge import InfinityEdge
 from tft.items.item import Item
 from tft.stats import BaseChampStats, Stats
 from tft.traits.trait import Trait
-from typing import TypeVar
 
 LEVEL = None
-T = TypeVar('T')
+
+
+class DamageType(Enum):
+    PHYSICAL = 1
+    MAGICAL = 2
+    TRUE = 3
 
 
 class BaseChampion:
@@ -90,6 +92,10 @@ class BaseChampion:
         return self.get_specific_stat(lambda x: x.armor, 'Armor')
 
     @property
+    def mr(self) -> int:
+        return self.get_specific_stat(lambda x: x.mr, 'MR')
+
+    @property
     def damage_reduction_flat(self) -> int:
         return self.get_specific_stat(lambda x: x.damage_reduction_flat,
                                       'DmgRedFlat')
@@ -125,7 +131,7 @@ class BaseChampion:
         return f
 
     def do_attack(self) -> None:
-        self.do_damage(self.target, self.ad, True, True)
+        self.do_damage(self.target, self.ad, True, True, DamageType.PHYSICAL)
 
     def attack(self) -> None:
         if self.last_attack_ts + 1 / self.aspd <= GAME_LOOP.game_time:
@@ -149,22 +155,65 @@ class BaseChampion:
     def mana_locked(self) -> bool:
         return self.mana_lock_ts > GAME_LOOP.game_time
 
+    @property
+    def armor_shred_flat(self) -> float:
+        f = self.get_specific_stat(lambda x: x.armor_shred_flat,
+                                   'ArmorShredFlat')
+        return f
+
+    @property
+    def armor_shred_pct(self) -> float:
+        f = self.get_specific_stat(lambda x: x.armor_shred_pct,
+                                   'ArmorShredPct')
+        return f
+
+    @property
+    def armor_ignore(self) -> float:
+        f = self.get_specific_stat(lambda x: x.armor_ignore, 'ArmorShredPct')
+        return f
+
+    @property
+    def mr_shred_flat(self) -> float:
+        f = self.get_specific_stat(lambda x: x.mr_shred_flat, 'mrShredFlat')
+        return f
+
+    @property
+    def mr_shred_pct(self) -> float:
+        f = self.get_specific_stat(lambda x: x.mr_shred_pct, 'mrShredPct')
+        return f
+
+    @property
+    def mr_ignore(self) -> float:
+        f = self.get_specific_stat(lambda x: x.mr_ignore, 'mrShredPct')
+        return f
+
     def gain_mana(self, amount: int, skip_lock: bool = False) -> None:
         if skip_lock or not self.mana_locked:
             self.current_mana += amount
 
     def do_damage(self, target: 'BaseChampion', amount: float, can_crit: bool,
-                  is_attack: bool) -> None:
+                  is_attack: bool, dmg_type: DamageType) -> None:
         dmg = amount
-        target_resist = target.armor
-        resist_ignore = self.base_stats.armor_ignore
-        shredded_flat = 0
-        shredded_pct = 0
+        print(dmg_type)
+        if dmg_type == DamageType.MAGICAL:
+            target_resist = target.mr
+            shredded_flat = self.mr_shred_flat
+            shredded_pct = self.mr_shred_pct
+            resist_ignore = self.mr_ignore
+        elif dmg_type == DamageType.PHYSICAL:
+            target_resist = target.armor
+            shredded_flat = self.armor_shred_flat
+            shredded_pct = self.armor_shred_pct
+            resist_ignore = self.armor_ignore
+        elif dmg_type == DamageType.TRUE:
+            target_resist = 0
+            shredded_flat = 0
+            shredded_pct = 0
+            resist_ignore = 0
+
         dmg_multi = 1
 
         for i in self.items:
-            shredded_flat += i.stats.armor_shred_flat
-            shredded_pct += i.stats.armor_shred_pct
             dmg_multi += i.on_damage_multiplier(self, target)
 
         did_crit = False

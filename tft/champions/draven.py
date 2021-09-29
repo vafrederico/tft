@@ -2,7 +2,7 @@ from os import stat
 from tft.game.constant import GAME_LOOP
 from time import time
 from tft.stats import BaseChampStats
-from tft.champions.champion import BaseChampion
+from tft.champions.champion import BaseChampion, DamageType
 from logging import getLogger
 
 log = getLogger(__name__)
@@ -27,7 +27,7 @@ class Draven(BaseChampion):
         self.do_damage(
             self.target,
             1.4 * self.ad + [125, 200, 700][self.level - 1] * self.ap, True,
-            True)
+            True, DamageType.PHYSICAL)
 
     def do_attack(self) -> None:
         if len(

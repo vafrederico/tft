@@ -11,6 +11,9 @@ class Stats:
     armor_shred_flat: int = 0
     armor_shred_pct: float = 0
     armor_ignore: float = 0
+    mr_shred_flat: int = 0
+    mr_shred_pct: float = 0
+    mr_ignore: float = 0
     hp: int = 0
     damage_reduction_pct: float = 0
     damage_reduction_flat: int = 0
@@ -30,6 +33,9 @@ class BaseChampStats:
     armor_shred_flat: int = 0
     armor_shred_pct: float = 0
     armor_ignore: float = 0
+    mr_shred_flat: int = 0
+    mr_shred_pct: float = 0
+    mr_ignore: float = 0
     damage_reduction_pct: float = 0
     damage_reduction_flat: int = 0
     aspd: float = 0.0
