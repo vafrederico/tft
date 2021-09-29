@@ -27,7 +27,7 @@ STATISTICS = False
 NUM_RUNS = 100 if STATISTICS else 1
 
 logging.basicConfig(
-    level=logging.DEBUG if not STATISTICS else logging.ERROR,
+    level=logging.INFO if not STATISTICS else logging.ERROR,
     format=FORMAT,
     handlers=(
         # RotatingFileHandler('assistant.log',
